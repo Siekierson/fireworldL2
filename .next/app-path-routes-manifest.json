@@ -1,0 +1,13 @@
+{
+  "/api/activity/route": "/api/activity",
+  "/_not-found/page": "/_not-found",
+  "/api/posts/route": "/api/posts",
+  "/api/chat/route": "/api/chat",
+  "/api/messages/route": "/api/messages",
+  "/api/auth/route": "/api/auth",
+  "/api/users/route": "/api/users",
+  "/profile/page": "/profile",
+  "/page": "/",
+  "/login/page": "/login",
+  "/messages/page": "/messages"
+}
