@@ -1,4 +1,4 @@
-// File: /Users/adriansiekierko/Documents/fireworldCOPY/src/app/api/posts/route.ts
+// File: /Users/adriansiekierko/Documents/fireworldL2/src/app/api/posts/route.ts
 import * as entry from '../../../../../src/app/api/posts/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -4,7 +4,7 @@
 
 FireWorld to portal społecznościowy, który umożliwia użytkownikom dzielenie się postami, komentowanie ich, lajkowanie oraz komunikację między sobą. Aplikacja została zbudowana w technologii Next.js z wykorzystaniem React i Tailwind CSS.
 Projekt wykorzystuje tylko Next.js i Tailwind CSS zgodnie z wymaganiami. Wszystkie komponenty zostały napisane od zera bez użycia gotowych komponentów UI. Aplikacja jest w pełni funkcjonalna i gotowa do użycia.
-Aplikacja jest zahostowana na vercelu, live version: 
+Aplikacja jest zahostowana na vercelu, live version: https://fireworld-l2.vercel.app
 ### Główne Funkcjonalności. 
 
 Aplikacja oferuje następujące możliwości:
@@ -152,15 +152,6 @@ Projekt wykorzystuje tylko Next.js i Tailwind CSS zgodnie z wymaganiami zadania.
 Aby uruchomić projekt lokalnie, potrzebne są:
 - Node.js (wersja 18 lub nowsza)
 - npm lub yarn
-do pelnoprawnego dzialania projektu potrzebny jest plik .env.local z kluczami do bazy danych i api
-na potrzeby zadania umieszcze tu swoje zeby aplikacja dzialala
-NEXT_PUBLIC_SUPABASE_URL=https://qmzuqzuzjrnviflqgzjx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtenVxenV6anJudmlmbHFnemp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MzU4MDQsImV4cCI6MjA3OTMxMTgwNH0.lF6VvWNujZnT_qElX5P9TbTpF3lG6vcNqDpVA1Avf44
-NEXT_PUBLIC_NEWS_API_KEY=iXq7d0CUYAxu75Sdy4ECXpBNOqNM72VzTSfMMqEL
-JWT_SECRET=l5pxCj42crf9l/PYfWgeSDUPCg5IjvTm+APMQq7WqRViHr//kabHIoQyEXWoElmLwrodruRhKF2UfalpjmHdvw==
-OPENAI_API_KEY=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
-
-
 
 ### Krok 1: Klonowanie i instalacja zależności
 
@@ -180,37 +171,13 @@ npm install
 
 Utwórz plik `.env.local` w głównym katalogu projektu i dodaj następujące zmienne:
 
-```env
-# Supabase - dane z dashboardu Supabase
-NEXT_PUBLIC_SUPABASE_URL=twoj_url_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=twoj_anon_key_supabase
+NEXT_PUBLIC_SUPABASE_URL=https://qmzuqzuzjrnviflqgzjx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtenVxenV6anJudmlmbHFnemp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MzU4MDQsImV4cCI6MjA3OTMxMTgwNH0.lF6VvWNujZnT_qElX5P9TbTpF3lG6vcNqDpVA1Avf44
+NEXT_PUBLIC_NEWS_API_KEY=iXq7d0CUYAxu75Sdy4ECXpBNOqNM72VzTSfMMqEL
+JWT_SECRET=l5pxCj42crf9l/PYfWgeSDUPCg5IjvTm+APMQq7WqRViHr//kabHIoQyEXWoElmLwrodruRhKF2UfalpjmHdvw==
+OPENAI_API_KEY=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
 
-# JWT Secret - dowolny bezpieczny ciąg znaków
-JWT_SECRET=twoj_secret_key_jwt
 
-# NewsAPI - klucz z https://www.thenewsapi.com/
-NEXT_PUBLIC_NEWS_API_KEY=twoj_klucz_newsapi
-
-# OpenAI - klucz z https://platform.openai.com/
-OPENAI_API_KEY=twoj_klucz_openai
-```
-
-**Jak uzyskać klucze:**
-
-1. **Supabase:**
-   - Utwórz konto na https://supabase.com
-   - Utwórz nowy projekt
-   - W ustawieniach projektu znajdziesz `URL` i `anon key`
-   - Uruchom migracje bazy danych z folderu `src/lib/migrations/`
-
-2. **NewsAPI:**
-   - Zarejestruj się na https://www.thenewsapi.com/
-   - Wygeneruj darmowy klucz API
-
-3. **OpenAI:**
-   - Utwórz konto na https://platform.openai.com/
-   - Wygeneruj klucz API w sekcji API Keys
-   - Uwaga: OpenAI wymaga doładowania konta (płatne)
 
 ### Krok 3: Uruchomienie serwera deweloperskiego
 
