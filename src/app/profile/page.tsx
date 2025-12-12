@@ -94,8 +94,8 @@ export default function Profile() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-900 via-red-800 to-red-900">
       <Sidebar />
-      <div className="flex-1 lg:ml-72">
-        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <div className="flex-1 flex justify-center lg:pl-72">
+        <div className="w-full max-w-4xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 md:space-x-6">
               <Image

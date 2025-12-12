@@ -252,8 +252,8 @@ export default function Messages() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-900 via-red-800 to-red-900">
       <Sidebar />
-      <div className="flex-1 lg:ml-72">
-        <div className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] lg:h-screen flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex justify-center lg:pl-72">
+        <div className="w-full max-w-6xl h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] lg:h-screen flex flex-col lg:flex-row overflow-hidden">
           <div className="w-full lg:w-80 xl:w-96 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col bg-[#541010] flex-shrink-0">
             <div className="p-3 sm:p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-white/10">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-orange-500">Messages</h2>
