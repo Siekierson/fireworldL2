@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Post } from '@/types/database';
-import { newsApi } from '@/lib/newsApi';
+import { backendApi } from '@/lib/backendApi';
 import PostCard from './PostCard';
 import NewsCard from './NewsCard';
 import CreatePost from './CreatePost';
@@ -40,7 +40,7 @@ export default function Feed() {
 
   const fetchNews = async (pageNum: number) => {
     try {
-      const newsData = await newsApi.getLatestNews(pageNum, NEWS_PER_PAGE);
+      const newsData = await backendApi.getNews(pageNum, NEWS_PER_PAGE);
       return newsData;
     } catch (error) {
       console.error('Error fetching news:', error);

@@ -27,15 +27,8 @@ export default function ChatAssistant() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: input }),
-      });
-
-      const data = await response.json();
+      const backendApi = (await import('@/lib/backendApi')).backendApi;
+      const data = await backendApi.chat(input);
       
       const assistantMessage: Message = {
         role: 'assistant',
