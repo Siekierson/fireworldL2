@@ -37,7 +37,7 @@ export const authController = {
       console.log('Hashing password...');
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const userData = {
+      const newUserData = {
         name,
         password: hashedPassword
       };
@@ -45,7 +45,7 @@ export const authController = {
       console.log('Creating new user...');
       const { data, error } = await supabase
         .from('users')
-        .insert([userData])
+        .insert([newUserData])
         .select()
         .single();
 
