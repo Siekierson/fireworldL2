@@ -176,7 +176,7 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="hidden lg:block w-64 xl:w-72 h-screen bg-[#541010] backdrop-blur-lg p-6 xl:p-8 flex flex-col fixed left-0 top-0">
+      <div className="hidden lg:block w-64 xl:w-72 h-screen bg-[#541010] backdrop-blur-lg p-6 xl:p-8 flex flex-col fixed left-0 top-0 z-20">
         <div className="flex-none flex items-center space-x-3 xl:space-x-4 mb-8 xl:mb-10">
           <Image
             src="/logo.png"
@@ -195,7 +195,7 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="hidden lg:block w-64 xl:w-72 fixed left-0 bottom-0 bg-[#541010] backdrop-blur-lg border-t border-white/10">
+      <div className="hidden lg:block w-64 xl:w-72 fixed left-0 bottom-0 bg-[#541010] backdrop-blur-lg border-t border-white/10 z-20">
         <UserSection />
       </div>
 

@@ -172,7 +172,7 @@ export default function RightSidebar() {
       
       <MobilePanel />
 
-      <div className="hidden lg:block w-72 xl:w-80 h-screen bg-[#541010] backdrop-blur-lg p-4 xl:p-6 flex flex-col fixed right-0 top-0">
+      <div className="hidden lg:block w-72 xl:w-80 h-screen bg-[#541010] backdrop-blur-lg p-4 xl:p-6 flex flex-col fixed right-0 top-0 z-20">
         <div className="flex-none mb-3 xl:mb-4">
           <h2 className="text-lg xl:text-xl font-bold text-orange-500">AI Assistant</h2>
         </div>
