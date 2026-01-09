@@ -189,7 +189,7 @@ export const messageController = {
               created_at: message.created_at,
               users: {
                 name: user.name,
-                imageURL: user.imageurl
+                imageURL: user.imageurl || ''
               }
             };
 
