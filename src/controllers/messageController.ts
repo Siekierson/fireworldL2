@@ -170,7 +170,7 @@ export const messageController = {
               .eq('userid', message.userid)
               .single();
 
-            if (userError) {
+            if (userError || !userData) {
               console.error('Error fetching user data:', {
                 error: userError,
                 userID: message.userid,
@@ -179,6 +179,8 @@ export const messageController = {
               return;
             }
 
+            const user = userData as { name: string; imageurl?: string };
+
             const processedMessage: Message = {
               messageID: message.messageid,
               userID: message.userid,
@@ -186,8 +188,8 @@ export const messageController = {
               message: message.message,
               created_at: message.created_at,
               users: {
-                name: userData.name,
-                imageURL: userData.imageurl
+                name: user.name,
+                imageURL: user.imageurl
               }
             };
 
