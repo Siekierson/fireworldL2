@@ -20,7 +20,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth' : '/api/auth';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const endpoint = `${backendUrl}/api/auth`;
       const method = isLogin ? 'PUT' : 'POST';
       const response = await fetch(endpoint, {
         method,

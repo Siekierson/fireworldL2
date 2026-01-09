@@ -5,6 +5,8 @@ const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const redis = require('redis');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -147,6 +149,110 @@ app.get('/api/news', async (req, res) => {
     console.error('Error fetching news:', error);
     await logToDatabase('backend', 'newsapi_error', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch news' });
+  }
+});
+
+app.post('/api/auth', async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    
+    if (!name || !password) {
+      return res.status(400).json({ error: 'Name and password are required' });
+    }
+
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select()
+      .eq('name', name)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      await logToDatabase('backend', 'auth_error', { error: checkError.message });
+      return res.status(400).json({ error: 'Error checking username availability' });
+    }
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ name, password: hashedPassword }])
+      .select()
+      .single();
+
+    if (error || !data) {
+      await logToDatabase('backend', 'auth_error', { error: error?.message });
+      return res.status(400).json({ error: 'Registration failed' });
+    }
+
+    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET || 'your-secret-key');
+    
+    await logToDatabase('backend', 'auth_register', { userID: data.userid });
+    await publishToRedis('stats', {
+      type: 'user_register',
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ user: data, token });
+  } catch (error) {
+    console.error('Registration error:', error);
+    await logToDatabase('backend', 'auth_error', { error: error.message });
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.put('/api/auth', async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    
+    if (!name || !password) {
+      return res.status(400).json({ error: 'Name and password are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select()
+      .eq('name', name)
+      .single();
+
+    if (error || !data) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, data.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET || 'your-secret-key');
+    
+    await logToDatabase('backend', 'auth_login', { userID: data.userid });
+    await publishToRedis('stats', {
+      type: 'user_login',
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ user: data, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    await logToDatabase('backend', 'auth_error', { error: error.message });
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.get('/api/auth', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    res.json(decoded);
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
   }
 });
 

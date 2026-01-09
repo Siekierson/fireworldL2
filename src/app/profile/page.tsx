@@ -46,7 +46,7 @@ export default function Profile() {
     const fetchData = async () => {
       try {
         const [userResponse, postsResponse] = await Promise.all([
-          fetch('/api/auth', {
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/auth`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }

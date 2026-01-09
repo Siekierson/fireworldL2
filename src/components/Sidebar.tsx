@@ -28,7 +28,8 @@ export default function Sidebar() {
 
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const response = await fetch(`${backendUrl}/api/auth`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
