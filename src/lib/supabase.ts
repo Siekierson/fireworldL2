@@ -21,9 +21,6 @@ function getSupabaseClient() {
           eventsPerSecond: 10
         }
       },
-      db: {
-        schema: 'public'
-      },
       global: {
         headers: {
           'x-application-name': 'fireworld'
