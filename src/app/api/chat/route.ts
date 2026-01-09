@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  const { default: OpenAI } = require('openai');
+  return new OpenAI({ apiKey });
+}
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
+    const openai = getOpenAIClient();
     const completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: message }],
       model: "gpt-3.5-turbo",
