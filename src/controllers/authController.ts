@@ -59,12 +59,13 @@ export const authController = {
       }
 
       console.log('User created successfully, generating token...');
-      if (!data.userid) {
-        throw new Error('User data does not contain userid');
+      const userData = data as User;
+      if (!userData.userID) {
+        throw new Error('User data does not contain userID');
       }
-      const token = jwt.sign({ userID: data.userid, name: data.name }, JWT_SECRET);
-      console.log('Created token payload:', { userID: data.userid, name: data.name });
-      return { user: data, token };
+      const token = jwt.sign({ userID: userData.userID, name: userData.name }, JWT_SECRET);
+      console.log('Created token payload:', { userID: userData.userID, name: userData.name });
+      return { user: userData, token };
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -89,13 +90,13 @@ export const authController = {
         throw new Error('Invalid credentials');
       }
 
-      console.log('User data before token creation:', data);
-      if (!data.userid) {
-        throw new Error('User data does not contain userid');
+      console.log('User data before token creation:', userData);
+      if (!userData.userID) {
+        throw new Error('User data does not contain userID');
       }
-      const token = jwt.sign({ userID: data.userid, name: data.name }, JWT_SECRET);
-      console.log('Created token payload:', { userID: data.userid, name: data.name });
-      return { user: data, token };
+      const token = jwt.sign({ userID: userData.userID, name: userData.name }, JWT_SECRET);
+      console.log('Created token payload:', { userID: userData.userID, name: userData.name });
+      return { user: userData, token };
     } catch (error) {
       throw error;
     }
