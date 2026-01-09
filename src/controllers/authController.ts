@@ -59,7 +59,7 @@ export const authController = {
       }
 
       console.log('User created successfully, generating token...');
-      const userData = data as User;
+      const userData = data as unknown as User;
       if (!userData.userID) {
         throw new Error('User data does not contain userID');
       }
@@ -84,7 +84,7 @@ export const authController = {
         throw new Error('Invalid credentials');
       }
 
-      const userData = data as User;
+      const userData = data as unknown as User;
       const isValidPassword = await bcrypt.compare(password, userData.password);
       if (!isValidPassword) {
         throw new Error('Invalid credentials');
