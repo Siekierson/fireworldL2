@@ -85,6 +85,7 @@ Dodaj:
 NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 NEXT_PUBLIC_SUPABASE_URL=twoj_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=twoj_supabase_anon_key
+JWT_SECRET=twoj_jwt_secret_key
 OPENAI_API_KEY=twoj_openai_api_key
 NEWS_API_KEY=twoj_news_api_key
 ```
