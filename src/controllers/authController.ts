@@ -83,7 +83,8 @@ export const authController = {
         throw new Error('Invalid credentials');
       }
 
-      const isValidPassword = await bcrypt.compare(password, data.password);
+      const userData = data as User;
+      const isValidPassword = await bcrypt.compare(password, userData.password);
       if (!isValidPassword) {
         throw new Error('Invalid credentials');
       }
