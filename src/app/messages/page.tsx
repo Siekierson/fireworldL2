@@ -54,7 +54,8 @@ export default function Messages() {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch('/api/users', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const response = await fetch(`${backendUrl}/api/users`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

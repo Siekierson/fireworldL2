@@ -645,6 +645,43 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+app.get('/api/users', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('userid, name, imageurl')
+      .neq('userid', decoded.userID)
+      .order('name');
+
+    if (error) throw error;
+
+    const users = data.map(user => ({
+      userID: user.userid,
+      name: user.name,
+      imageURL: user.imageurl
+    }));
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error in GET /api/users:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 app.get('/api/supabase/test', async (req, res) => {
   try {
     if (!supabase) {
