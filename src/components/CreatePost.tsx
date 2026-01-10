@@ -29,7 +29,8 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       console.log('Decoded token:', decodedToken);
       console.log('User ID from token:', decodedToken.userID);
 
-      const response = await fetch('/api/posts', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

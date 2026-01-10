@@ -21,7 +21,8 @@ export default function Profile() {
         return;
       }
 
-      const postsResponse = await fetch('/api/posts', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const postsResponse = await fetch(`${backendUrl}/api/posts`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,13 +46,14 @@ export default function Profile() {
 
     const fetchData = async () => {
       try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
         const [userResponse, postsResponse] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/auth`, {
+          fetch(`${backendUrl}/api/auth`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           }),
-          fetch('/api/posts', {
+          fetch(`${backendUrl}/api/posts`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }

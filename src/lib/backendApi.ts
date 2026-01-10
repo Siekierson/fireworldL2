@@ -28,6 +28,18 @@ export const backendApi = {
 
     return response.json();
   },
+
+  async getPosts(page: number = 1, limit: number = 5) {
+    const response = await fetch(`${BACKEND_URL}/api/posts?page=${page}&limit=${limit}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || errorData.details || 'Failed to fetch posts';
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
 };
 
 

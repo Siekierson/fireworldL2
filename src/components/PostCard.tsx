@@ -55,7 +55,8 @@ export default function PostCard({ post, onPostUpdated, onPostDeleted }: PostCar
 
     setIsDeleting(true);
     try {
-      const response = await fetch('/api/posts', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/posts`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +101,8 @@ export default function PostCard({ post, onPostUpdated, onPostDeleted }: PostCar
       };
       console.log('Sending like request:', requestBody);
 
-      const response = await fetch('/api/activity', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/activity`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +150,8 @@ export default function PostCard({ post, onPostUpdated, onPostDeleted }: PostCar
 
     setIsSubmittingComment(true);
     try {
-      const response = await fetch('/api/activity', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/activity`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

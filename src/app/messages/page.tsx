@@ -183,7 +183,8 @@ export default function Messages() {
           timestamp: new Date().toISOString()
         });
 
-        const response = await fetch(`/api/messages?otherUserID=${selectedUser.userID}`, {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const response = await fetch(`${backendUrl}/api/messages?otherUserID=${selectedUser.userID}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -230,7 +231,8 @@ export default function Messages() {
     if (!newMessage.trim() || !selectedUser || !user) return;
 
     try {
-      const response = await fetch('/api/messages', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

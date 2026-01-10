@@ -22,7 +22,8 @@ export default function Feed() {
 
   const fetchPosts = async (pageNum: number) => {
     try {
-      const postsResponse = await fetch(`/api/posts?page=${pageNum}&limit=${POSTS_PER_PAGE}`);
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const postsResponse = await fetch(`${backendUrl}/api/posts?page=${pageNum}&limit=${POSTS_PER_PAGE}`);
       if (!postsResponse.ok) {
         throw new Error('Failed to fetch posts');
       }

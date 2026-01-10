@@ -356,6 +356,268 @@ app.get('/api/auth', async (req, res) => {
   }
 });
 
+app.get('/api/posts', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        users:ownerid (name, imageurl),
+        activities (
+          activityid,
+          type,
+          userid,
+          message,
+          created_at,
+          users:userid (name, imageurl)
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + parseInt(limit) - 1);
+
+    if (postsError) throw postsError;
+
+    res.json(posts || []);
+  } catch (error) {
+    console.error('Error in GET /api/posts:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch posts' });
+  }
+});
+
+app.post('/api/posts', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded.userID) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const { text } = req.body;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Post text is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('posts')
+      .insert([{ text, ownerid: decoded.userID }])
+      .select(`
+        *,
+        users:ownerid (name, imageurl)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    await logToDatabase('backend', 'post_created', { postID: data.postid });
+    res.json(data);
+  } catch (error) {
+    console.error('Error in POST /api/posts:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    res.status(500).json({ error: error.message || 'Failed to create post' });
+  }
+});
+
+app.delete('/api/posts', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { postID } = req.body;
+
+    const { data: post, error: fetchError } = await supabase
+      .from('posts')
+      .select('ownerid')
+      .eq('postid', postID)
+      .single();
+
+    if (fetchError || !post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (post.ownerid !== decoded.userID) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    const { error: deleteError } = await supabase
+      .from('posts')
+      .delete()
+      .eq('postid', postID);
+
+    if (deleteError) throw deleteError;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in DELETE /api/posts:', error);
+    res.status(500).json({ error: 'Failed to delete post' });
+  }
+});
+
+app.post('/api/activity', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { type, postid, message } = req.body;
+
+    if (!type || !postid) {
+      return res.status(400).json({ error: 'Type and postid are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('activities')
+      .insert([{ type, postid, userid: decoded.userID, message }])
+      .select(`
+        *,
+        users:userid (name, imageurl)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error in POST /api/activity:', error);
+    res.status(500).json({ error: error.message || 'Failed to create activity' });
+  }
+});
+
+app.get('/api/activity', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const { postID } = req.query;
+    if (!postID) {
+      return res.status(400).json({ error: 'Post ID is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('activities')
+      .select(`
+        activityid,
+        type,
+        postid,
+        userid,
+        message,
+        created_at,
+        users:userid (name, imageurl)
+      `)
+      .eq('postid', postID)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error in GET /api/activity:', error);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { message, toWhoID } = req.body;
+
+    if (!message || !toWhoID) {
+      return res.status(400).json({ error: 'Message and recipient ID are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([{ message, fromwho: decoded.userID, towho: toWhoID }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error in POST /api/messages:', error);
+    res.status(500).json({ error: error.message || 'Failed to send message' });
+  }
+});
+
+app.get('/api/messages', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { otherUserID } = req.query;
+
+    if (!otherUserID) {
+      return res.status(400).json({ error: 'Other user ID is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`fromwho.eq.${decoded.userID},towho.eq.${decoded.userID}`)
+      .or(`fromwho.eq.${otherUserID},towho.eq.${otherUserID}`)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    const filteredMessages = (data || []).filter(msg => 
+      (msg.fromwho === decoded.userID && msg.towho === otherUserID) ||
+      (msg.fromwho === otherUserID && msg.towho === decoded.userID)
+    );
+
+    res.json(filteredMessages);
+  } catch (error) {
+    console.error('Error in GET /api/messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
 app.get('/api/supabase/test', async (req, res) => {
   try {
     if (!supabase) {
