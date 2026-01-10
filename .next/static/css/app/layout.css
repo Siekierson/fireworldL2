@@ -1733,12 +1733,11 @@ video {
 .z-10 {
   z-index: 10;
 }
+.z-20 {
+  z-index: 20;
+}
 .z-50 {
   z-index: 50;
-}
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
 }
 .-ml-1 {
   margin-left: -0.25rem;
@@ -2154,10 +2153,6 @@ video {
 }
 .p-6 {
   padding: 1.5rem;
-}
-.px-2 {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
 }
 .px-3 {
   padding-left: 0.75rem;
@@ -2899,36 +2894,8 @@ body {
 }
 @media (min-width: 1024px) {
 
-  .lg\:col-span-1 {
-    grid-column: span 1 / span 1;
-  }
-
-  .lg\:col-span-10 {
-    grid-column: span 10 / span 10;
-  }
-
-  .lg\:ml-72 {
-    margin-left: 18rem;
-  }
-
-  .lg\:mr-80 {
-    margin-right: 20rem;
-  }
-
-  .lg\:ml-64 {
-    margin-left: 16rem;
-  }
-
-  .lg\:mr-72 {
-    margin-right: 18rem;
-  }
-
   .lg\:block {
     display: block;
-  }
-
-  .lg\:grid {
-    display: grid;
   }
 
   .lg\:hidden {
@@ -2965,10 +2932,6 @@ body {
 
   .lg\:w-80 {
     width: 20rem;
-  }
-
-  .lg\:grid-cols-12 {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
   .lg\:flex-row {
@@ -3049,28 +3012,12 @@ body {
 }
 @media (min-width: 1280px) {
 
-  .xl\:col-span-1 {
-    grid-column: span 1 / span 1;
-  }
-
-  .xl\:col-span-10 {
-    grid-column: span 10 / span 10;
-  }
-
   .xl\:mb-10 {
     margin-bottom: 2.5rem;
   }
 
   .xl\:mb-4 {
     margin-bottom: 1rem;
-  }
-
-  .xl\:ml-72 {
-    margin-left: 18rem;
-  }
-
-  .xl\:mr-80 {
-    margin-right: 20rem;
   }
 
   .xl\:h-14 {

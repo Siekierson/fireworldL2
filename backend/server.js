@@ -7,7 +7,27 @@ const redis = require('redis');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+
+const possiblePaths = [
+  path.join(__dirname, '.env.local'),
+  path.join(__dirname, '..', '.env.local'),
+  path.join(process.cwd(), '.env.local'),
+];
+
+let envLoaded = false;
+for (const envPath of possiblePaths) {
+  if (fs.existsSync(envPath)) {
+    require('dotenv').config({ path: envPath });
+    envLoaded = true;
+    break;
+  }
+}
+
+if (!envLoaded) {
+  require('dotenv').config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,29 +35,38 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+const supabase = supabaseUrl && 
+                 supabaseKey && 
+                 supabaseUrl !== 'twoj_supabase_url' &&
+                 supabaseUrl.startsWith('http')
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 let redisClient;
 
 async function initRedis() {
   try {
+    const isDocker = process.env.DB_HOST === 'database' || process.env.REDIS_HOST === 'redis';
+    const redisHost = process.env.REDIS_HOST || (isDocker ? 'redis' : 'localhost');
+    const redisPort = parseInt(process.env.REDIS_PORT || '6379');
+    
     redisClient = redis.createClient({
       socket: {
-        host: process.env.REDIS_HOST || 'redis',
-        port: parseInt(process.env.REDIS_PORT || '6379')
+        host: redisHost,
+        port: redisPort
       }
     });
 
     redisClient.on('error', (err) => console.error('Redis Client Error', err));
     await redisClient.connect();
-    console.log('Redis connected');
+    console.log(`Redis connected to ${redisHost}:${redisPort}`);
   } catch (error) {
     console.error('Redis connection error:', error);
   }
@@ -45,28 +74,54 @@ async function initRedis() {
 
 initRedis();
 
-const pgPool = new Pool({
-  host: process.env.DB_HOST || 'database',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'fireworld',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-});
+let pgPool = null;
 
-pgPool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
+async function initPostgreSQL() {
+  const isDocker = process.env.DB_HOST === 'database';
+  const hasDbConfig = process.env.DB_HOST || isDocker;
+  
+  if (!hasDbConfig) {
+    return;
+  }
+
+  try {
+    const dbConfig = {
+      host: process.env.DB_HOST || 'database',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'fireworld',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+    };
+
+    pgPool = new Pool(dbConfig);
+
+    pgPool.on('error', (err) => {
+      console.error('PostgreSQL connection error:', err);
+      pgPool = null;
+    });
+
+    await pgPool.query('SELECT NOW()');
+  } catch (error) {
+    console.warn('PostgreSQL connection failed:', error.message);
+    pgPool = null;
+  }
+}
+
+initPostgreSQL();
 
 async function logToDatabase(service, action, data) {
-  try {
-    await pgPool.query(
-      'INSERT INTO system_logs (service, action, data, created_at) VALUES ($1, $2, $3, NOW())',
-      [service, action, JSON.stringify(data)]
-    );
-  } catch (error) {
-    console.error('Error logging to database:', error);
+  if (pgPool) {
+    try {
+      await pgPool.query(
+        'INSERT INTO system_logs (service, action, data, created_at) VALUES ($1, $2, $3, NOW())',
+        [service, action, JSON.stringify(data)]
+      );
+      return;
+    } catch (error) {
+      console.error('Error logging to database:', error);
+    }
   }
+  console.log(`[${service}] ${action}:`, data);
 }
 
 async function publishToRedis(channel, data) {
@@ -87,25 +142,56 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: message }],
-      model: "gpt-3.5-turbo",
-    });
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required and must be a string' });
+    }
 
-    const response = completion.choices[0].message.content;
+    if (!openai) {
+      return res.status(503).json({ error: 'OpenAI API key is not configured. Please set OPENAI_API_KEY in .env.local file' });
+    }
 
-    await logToDatabase('backend', 'openai_request', { message, response });
-    await publishToRedis('stats', {
-      type: 'ai_request',
-      timestamp: new Date().toISOString(),
-      message_length: message.length
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: message }],
+        model: "gpt-3.5-turbo",
+      });
 
-    res.json({ message: response });
+      const response = completion.choices[0].message.content;
+
+      await logToDatabase('backend', 'openai_request', { message, response });
+      await publishToRedis('stats', {
+        type: 'ai_request',
+        timestamp: new Date().toISOString(),
+        message_length: message.length
+      });
+
+      res.json({ message: response });
+    } catch (openaiError) {
+      console.error('OpenAI API Error:', openaiError);
+      await logToDatabase('backend', 'openai_error', { 
+        error: openaiError.message,
+        status: openaiError.status,
+        code: openaiError.code
+      });
+      
+      if (openaiError.status === 401) {
+        return res.status(401).json({ error: 'Invalid OpenAI API key. Please check OPENAI_API_KEY in .env.local' });
+      } else if (openaiError.status === 429) {
+        return res.status(429).json({ error: 'OpenAI API rate limit exceeded. Please try again later.' });
+      } else {
+        return res.status(500).json({ 
+          error: 'OpenAI API error',
+          details: openaiError.message 
+        });
+      }
+    }
   } catch (error) {
-    console.error('Error:', error);
-    await logToDatabase('backend', 'openai_error', { error: error.message });
-    res.status(500).json({ error: 'Failed to process your request' });
+    console.error('Error in /api/chat:', error);
+    await logToDatabase('backend', 'chat_error', { error: error.message });
+    res.status(500).json({ 
+      error: 'Failed to process your request',
+      details: error.message 
+    });
   }
 });
 
@@ -113,9 +199,15 @@ app.get('/api/news', async (req, res) => {
   try {
     const { page = 1, limit = 5 } = req.query;
 
+    const newsApiKey = process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.NEWS_API_KEY;
+    
+    if (!newsApiKey) {
+      return res.status(503).json({ error: 'News API key is not configured. Please set NEXT_PUBLIC_NEWS_API_KEY in .env.local file' });
+    }
+
     const response = await axios.get('https://api.thenewsapi.com/v1/news/top', {
       params: {
-        api_token: process.env.NEWS_API_KEY,
+        api_token: newsApiKey,
         locale: 'pl',
         limit: parseInt(limit),
         page: parseInt(page),
@@ -160,6 +252,10 @@ app.post('/api/auth', async (req, res) => {
       return res.status(400).json({ error: 'Name and password are required' });
     }
 
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local file' });
+    }
+
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select()
@@ -187,7 +283,7 @@ app.post('/api/auth', async (req, res) => {
       return res.status(400).json({ error: 'Registration failed' });
     }
 
-    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET || 'your-secret-key');
+    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET);
     
     await logToDatabase('backend', 'auth_register', { userID: data.userid });
     await publishToRedis('stats', {
@@ -211,6 +307,10 @@ app.put('/api/auth', async (req, res) => {
       return res.status(400).json({ error: 'Name and password are required' });
     }
 
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local file' });
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select()
@@ -226,7 +326,7 @@ app.put('/api/auth', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET || 'your-secret-key');
+    const token = jwt.sign({ userID: data.userid, name: data.name }, process.env.JWT_SECRET);
     
     await logToDatabase('backend', 'auth_login', { userID: data.userid });
     await publishToRedis('stats', {
@@ -249,7 +349,7 @@ app.get('/api/auth', async (req, res) => {
       return res.status(401).json({ error: 'No token provided' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     res.json(decoded);
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
@@ -258,6 +358,10 @@ app.get('/api/auth', async (req, res) => {
 
 app.get('/api/supabase/test', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local file' });
+    }
+
     const { data, error } = await supabase.from('users').select('count').limit(1);
     
     if (error) throw error;

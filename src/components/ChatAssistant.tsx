@@ -38,6 +38,12 @@ export default function ChatAssistant() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get chat response';
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: `❌ Error: ${errorMessage}`,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }

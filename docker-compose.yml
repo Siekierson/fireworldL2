@@ -5,11 +5,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - .env.local
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-http://34.78.248.220:3001}
-      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-http://localhost:3001}
     depends_on:
       - backend
     networks:
@@ -17,24 +16,18 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./backend/Dockerfile
     ports:
       - "3001:3001"
+    env_file:
+      - .env.local
     environment:
       - PORT=3001
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - NEWS_API_KEY=${NEWS_API_KEY}
-      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - DB_HOST=database
-      - DB_PORT=5432
-      - DB_NAME=fireworld
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+    volumes:
+      - ./.env.local:/app/.env.local:ro
     depends_on:
       - database
       - redis

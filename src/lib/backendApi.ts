@@ -11,7 +11,9 @@ export const backendApi = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get chat response');
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || errorData.details || 'Failed to get chat response';
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -27,4 +29,5 @@ export const backendApi = {
     return response.json();
   },
 };
+
 

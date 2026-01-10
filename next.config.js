@@ -8,7 +8,11 @@ const nextConfig = {
         hostname: '**',
       }
     ],
+    // Disable image optimization for large local images
+    unoptimized: false,
   },
+  // Allow serving large static files
+  staticPageGenerationTimeout: 60,
 };
 
 module.exports = nextConfig;

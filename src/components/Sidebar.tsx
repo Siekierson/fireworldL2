@@ -111,14 +111,16 @@ export default function Sidebar() {
                 width={48}
                 height={48}
                 className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex-shrink-0"
+                unoptimized={true}
               />
             ) : (
-              <Image
+              <img
                 src="/default-avatar.png"
                 alt="Default Avatar"
-                width={48}
-                height={48}
-                className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex-shrink-0"
+                className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex-shrink-0 object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             )}
             <div className="min-w-0 flex-1">

@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"components/ChatAssistant.tsx -> @/lib/backendApi\":{\"id\":\"components/ChatAssistant.tsx -> @/lib/backendApi\",\"files\":[\"static/chunks/_app-pages-browser_src_lib_backendApi_ts.js\"]}}"
