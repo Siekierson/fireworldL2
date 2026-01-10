@@ -52,15 +52,46 @@ Teraz możesz uzyskać dostęp do aplikacji z innych urządzeń w tej samej siec
 
 ## 🔧 Automatyczne wykrywanie IP
 
-Możesz też użyć skryptu do automatycznego wykrycia IP:
+### Opcja 1: Skrypt pomocniczy
+
+**Sprawdź swoje aktualne IP:**
+```bash
+./get-local-ip.sh
+```
+
+**Uruchom aplikację z automatycznym wykryciem IP:**
+```bash
+./start-with-ip.sh
+```
+
+### Opcja 2: NPM script
+
+**Użyj gotowego skryptu npm:**
+```bash
+npm run dev:network
+```
+
+To automatycznie wykryje Twoje IP i uruchomi frontend.
+
+### Opcja 3: Ręczne wykrycie IP
 
 **macOS/Linux:**
 ```bash
-# Dodaj do .env.local
-NEXT_PUBLIC_BACKEND_URL=http://$(ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -1):3001
+ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -1
 ```
 
-**Lub ustaw w terminalu przed uruchomieniem:**
+**Windows:**
+```bash
+ipconfig | findstr IPv4
+```
+
+**Następnie dodaj do `.env.local`:**
+```env
+NEXT_PUBLIC_BACKEND_URL=http://ZNALEZIONE_IP:3001
+```
+
+### Opcja 4: Ustaw w terminalu przed uruchomieniem
+
 ```bash
 export NEXT_PUBLIC_BACKEND_URL=http://$(ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -1):3001
 npm run dev

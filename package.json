@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:network": "bash -c 'export NEXT_PUBLIC_BACKEND_URL=http://$(ifconfig | grep \"inet \" | grep -v 127.0.0.1 | awk \"{print \\$2}\" | head -1):3001 && next dev'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
