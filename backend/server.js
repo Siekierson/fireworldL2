@@ -424,6 +424,12 @@ app.post('/api/posts', async (req, res) => {
     if (error) throw error;
 
     await logToDatabase('backend', 'post_created', { postID: data.postid });
+    await publishToRedis('stats', {
+      type: 'post_created',
+      timestamp: new Date().toISOString(),
+      postID: data.postid
+    });
+
     res.json(data);
   } catch (error) {
     console.error('Error in POST /api/posts:', error);
@@ -494,6 +500,24 @@ app.post('/api/activity', async (req, res) => {
       return res.status(400).json({ error: 'Type and postid are required' });
     }
 
+    if (type === 'like') {
+      const { data: existingActivity, error: checkError } = await supabase
+        .from('activities')
+        .select('*')
+        .match({ type, postid, userid: decoded.userID })
+        .single();
+
+      if (existingActivity && (!checkError || checkError.code === 'PGRST116')) {
+        const { error: deleteError } = await supabase
+          .from('activities')
+          .delete()
+          .eq('activityid', existingActivity.activityid);
+
+        if (deleteError) throw deleteError;
+        return res.json({ type: 'unlike', postid, userid: decoded.userID });
+      }
+    }
+
     const { data, error } = await supabase
       .from('activities')
       .insert([{ type, postid, userid: decoded.userID, message }])
@@ -508,6 +532,9 @@ app.post('/api/activity', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Error in POST /api/activity:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
     res.status(500).json({ error: error.message || 'Failed to create activity' });
   }
 });
